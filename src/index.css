@@ -1,5 +1,67 @@
-:root{
-  font-size: 16px;
-  color: aquamarine;
-  background-color:dodgerblue
+:root {
+	font-size: 16px;
+  line-height: 1.4;
+	color: aquamarine;
+	background-color: dodgerblue;
+	height: 100%;
+}
+
+* {
+	margin: 0;
+	padding: 0;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	background-color: rgb(15, 74, 133);
+	height: 100vh;
+	max-width: 960px;
+	margin: auto;
+	display: grid;
+	grid-template-rows: 3fr 80vh 1fr;
+	grid-template-areas:
+		"header"
+		"content"
+		"footer";
+}
+header {
+	grid-area: header;
+}
+
+h1 {
+	padding: 5px;
+}
+header,
+footer {
+	text-align: center;
+}
+
+main {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	grid-area: content;
+	border: red 1px solid;
+	height: 80vh;
+	width: 80%;
+	margin: auto;
+}
+
+footer {
+	grid-area: footer;
+}
+
+input[type="number"] {
+	background-color: lightyellow;
+	border: 2px solid dodgerblue;
+	font-size: 16px;
+	padding: 0.5em;
+	width: 30px;
+}
+
+button {
+	width: 100px;
 }

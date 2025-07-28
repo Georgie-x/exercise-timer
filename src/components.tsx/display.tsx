@@ -1,7 +1,10 @@
-function Display() {
+function Display({status}) {
+
+	console.log(status)
+
 	return (
 		<>
-			<p>fun animation</p>
+			<p>fun animation {status.rep}</p>
 		</>
 	)
 }

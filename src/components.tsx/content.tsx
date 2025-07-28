@@ -1,15 +1,49 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
+import { playWorkoutAudioSequence } from "../utils.js"
+import type { UserInputs } from "../types.ts"
 import Display from "./display"
 
 function Content() {
+	const audioRef = useRef<HTMLAudioElement>(null)
 	const [isPlaying, setIsPlaying] = useState<boolean>(false)
-	const [exercises, setExercises] = useState<number>(4)
-	const [sets, setSets] = useState<number>(2)
-	const [reps, setReps] = useState<number>(10)
-	const [repTime, setRepTime] = useState<number>(6)
-	const [setTime, setSetTime] = useState<number>(10)
+	const [status, setStatus] = useState({ exercise: 0, set: 0, rep: 0, done: false })
 
-	const totalTime = 0
+	const [formValues, setFormValues] = useState<UserInputs>({
+		exercises: 4,
+		sets: 2,
+		reps: 10,
+		setTime: 10,
+		repTime: 6,
+	})
+
+	const fields: {
+		id: keyof UserInputs
+		label: string
+	}[] = [
+		{ id: "exercises", label: "Number of exercises" },
+		{ id: "sets", label: "Number of sets" },
+		{ id: "reps", label: "Number of reps" },
+		{ id: "setTime", label: "Time between sets (seconds)" },
+		{ id: "repTime", label: "Time between reps (seconds)" },
+	]
+
+	const handleChange = (id: keyof UserInputs, value: number) => {
+		setFormValues((prev) => ({ ...prev, [id]: value }))
+	}
+
+	const handleStart = async () => {
+		setIsPlaying(true)
+		setStatus({ exercise: 0, set: 0, rep: 0, done: false })
+
+		await playWorkoutAudioSequence(audioRef, formValues, (update) => {
+			setStatus((prev) => ({ ...prev, ...update }))
+		})
+		setIsPlaying(false)
+	}
+
+	const { exercises, sets, reps, setTime, repTime } = formValues
+	const totalSeconds = exercises * sets * (reps * repTime + setTime)
+	const totalMinutes = (totalSeconds / 60 + 1).toFixed(0)
 
 	return (
 		<main className='content-container'>
@@ -17,35 +51,32 @@ function Content() {
 				Hello, if you would like to hear chimes between sets and reps please edit your workout
 				details below
 			</h2>
-			<form action=''>
-				<label htmlFor='exercises'>Number of exercises: </label>
-				<input type='number' id='exercises'></input>
-				<br />
-				<label htmlFor='sets'>Number of sets: </label>
-				<input type='number' id='sets'></input>
-				<br />
-				<label htmlFor='reps'>Number of reps: </label>
-				<input type='number' id='reps'></input>
-				<br />
-				<label htmlFor='repTime'>Time between sets (seconds): </label>
-				<input type='number' id='setTime'></input>
-				<br />
-				<label htmlFor='repTime'>Time between reps (seconds): </label>
-				<input type='number' id='repTime'></input>
+
+			<form>
+				{fields.map(({ id, label }) => (
+					<div key={id}>
+						<label htmlFor={id}>{label}: </label>
+						<input
+							type='number'
+							id={id}
+							value={formValues[id]}
+							onChange={(e) => handleChange(id, Number(e.target.value))}
+							disabled={isPlaying}
+						/>
+					</div>
+				))}
 
 				<p>
-					Currently your audio track is a total of {totalTime} minutes long. You are doing {sets}
-					sets of {exercises} exercises with a {setTime} second break in between. Each set contains
-					{reps} reps with a {repTime} second interval.
+					Currently your audio track is {totalMinutes} minutes long. You are doing {sets} sets of{" "}
+					{exercises} exercises with a {setTime}-second break in between. Each set contains {reps}{" "}
+					reps with a {repTime}-second interval.
 				</p>
-				<audio
-					src='/src/assets/mariostart.mp3'
-					controls
-					onPlay={() => setIsPlaying(true)}
-					onPause={() => setIsPlaying(false)}
-				></audio>
+
+
+				<audio ref={audioRef} controls onPlay={handleStart}/>
 			</form>
-			<Display />
+
+			<Display status={status} />
 		</main>
 	)
 }
